@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Focus Skill</string>
+    <string name="increase">Increase your focus by controlling your attention</string>
+    <string name="Remember">Remember below displayed number and press START</string>
+    <string name="Numbers">Numbers will be displayed one by one , tab the screen after every number and DO NOT tap when the number displays</string>
+    <string name="start">START</string>
+    <string name="restart">Restart</string>
+</resources>
