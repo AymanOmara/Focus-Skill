@@ -5,19 +5,19 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import java.time.Instant
+import android.widget.Toast
 
 class ResultActivity : AppCompatActivity() {
-    var incomingIntent: Intent? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_result2)
 
-        val restartbtn = findViewById<Button>(R.id.restartBtn)
+        val restartBtn = findViewById<Button>(R.id.restartBtn)
         val message = findViewById<TextView>(R.id.resultMessage)
 
-        message.text = incomingIntent?.getStringExtra("Message")
-        restartbtn.setOnClickListener {
+        message.text = intent.getStringExtra("Message")
+
+        restartBtn.setOnClickListener {
             goToHome()
         }
 
@@ -25,6 +25,7 @@ class ResultActivity : AppCompatActivity() {
     fun goToHome(){
         val myIntent = Intent(this,MainActivity::class.java)
         startActivity(myIntent)
+        finish()
     }
 
 }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 var array  = intArrayOf(0,1, 2, 3, 4, 5,6,7,8,9)
@@ -16,7 +17,6 @@ var array  = intArrayOf(0,1, 2, 3, 4, 5,6,7,8,9)
         setContentView(R.layout.activity_main)
         val button:Button = findViewById(R.id.button)
         textView = findViewById(R.id.NumberTV)
-
 
         myIntent =  Intent(this,PlayActivity::class.java )
         textView?.text = array.random().toString()
