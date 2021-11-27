@@ -16,7 +16,7 @@ class PlayActivity : AppCompatActivity() {
     private var orignialNumber: String? = null
     private var textView: TextView? = null
     private var array = intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-    private var heartNumbers = 4
+    private var heartNumbers = 3
     private var handler: Handler? = null
     private var runnable: Runnable? = null
     private var pauseBtn: Button? = null;
@@ -26,7 +26,6 @@ class PlayActivity : AppCompatActivity() {
     private var secondHartIv: ImageView? = null;
     private var thirdHartIv: ImageView? = null;
     private var isClicked: Boolean = false;
-    private var numbers: List<Int> = arrayListOf()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -189,7 +188,7 @@ class PlayActivity : AppCompatActivity() {
 
     override fun onRestart() {
         super.onRestart()
-        heartNumbers = 4
+        heartNumbers = 3
     }
 
     private fun displayNumber() {
