@@ -1,26 +1,24 @@
 package com.example.focusskill
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.*
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.ankushgrover.hourglass.Hourglass
 
 class PlayActivity : AppCompatActivity() {
     private var timer: CountDownTimer? = null
+    private var fullTimer: CountDownTimer? = null
+    private var resumeTimer: CountDownTimer? = null
     private var curretNumber: String? = null
     private var orignialNumber: String? = null
     private var textView: TextView? = null
+    private var pauseFrameLayout : FrameLayout?= null
     private var array = intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     private var heartNumbers = 3
     private var handler: Handler? = null
     private var runnable: Runnable? = null
-    private var pauseBtn: Button? = null;
-    private var hourglass: Hourglass? = null;
     private var isTimeRunning: Boolean? = true;
     private var firstHartIv: ImageView? = null;
     private var secondHartIv: ImageView? = null;
@@ -35,16 +33,33 @@ class PlayActivity : AppCompatActivity() {
 
         orignialNumber = intent.getStringExtra("keyIdentifier")
         textView = findViewById(R.id.currentNumber)
-        pauseBtn = findViewById(R.id.pauseTimerBtn)
         firstHartIv = findViewById(R.id.firstHartIv)
         secondHartIv = findViewById(R.id.secondHartIv)
         thirdHartIv = findViewById(R.id.thirdHartIv)
+        pauseFrameLayout = findViewById(R.id.pauseFrameLayout)
 
-        clickListner()
-        startTimer()
+        calculateDisplayHeight()
+        clickListener()
+        displayNumber()
         checkHeartsNumber()
 
+        startRunnable()
 
+    }
+
+    private fun startRunnable() {
+        runnable = Runnable {
+            startTimer()
+        }
+
+        handler!!.postDelayed(runnable!!, 3000)
+    }
+
+    @SuppressLint("NewApi")
+    private fun calculateDisplayHeight() {
+        var height : Int = display!!.height
+
+        pauseFrameLayout?.minimumHeight = (height/5)
     }
 
     private fun checkHeartsNumber() {
@@ -53,17 +68,6 @@ class PlayActivity : AppCompatActivity() {
             secondHartIv?.setImageResource(R.drawable.ic_hart_filled)
             thirdHartIv?.setImageResource(R.drawable.ic_hart_filled)
         }
-    }
-
-    private fun startRunnable() {
-       handler = Handler(mainLooper);
-        handler?.postDelayed({
-            if (!isClicked) {
-                if (orignialNumber!=curretNumber) {
-                    reduceHearts()
-                }
-            }
-        }, 3000)
     }
 
     private fun reduceHearts() {
@@ -104,76 +108,39 @@ class PlayActivity : AppCompatActivity() {
 
     }
 
-    private fun startHandler() {
-        handler?.postDelayed(runnable!!, 3000.toLong())
-    }
-
-    private fun clickListner() {
+    private fun clickListener() {
         textView?.setOnClickListener {
-            if(orignialNumber == curretNumber){
+            if (orignialNumber == textView?.text) {
                 reduceHearts()
             }
             isClicked = true
         }
 
-        pauseBtn?.setOnClickListener {
+        pauseFrameLayout?.setOnClickListener {
             if (isTimeRunning == true) {
-                pauseBtn?.text = "ResumeTimer"
                 pauseTimer()
-            }else{
-                timer?.start()
-                pauseBtn?.text = "PauseTimer"
+            } else {
+               startRunnable()
             }
         }
     }
 
     private fun pauseTimer() {
-        stopHandler()
         timer?.cancel()
         isTimeRunning = false;
-
     }
 
-    private fun stopHandler() {
-        handler?.removeCallbacksAndMessages(null)
-    }
-
-
-    private fun randomNumber() {
-        //1000*30*60   300
-        startRunnable()
-        hourglass = object : Hourglass(1000*30*60, 3000) {
-            override fun onTimerTick(timeRemaining: Long) {
-
-                if (!isClicked) {
-                    //reduceHearts()
-                    hourglass = null
-                }
-                displayNumber()
-
-                isClicked = false
-            }
-
-            override fun onTimerFinish() {
-                goToResult("Great you win this time Want to try again?")
-            }
-
-        }
-
-        (hourglass as Hourglass).startTimer()
-
-    }
 
     private fun startTimer() {
         //1000*30*60   300
         timer = object : CountDownTimer(1000 * 30 * 60, 3000) {
             override fun onTick(millisUntilFinished: Long) {
-
-                if (!isClicked) {
-                    if (orignialNumber != curretNumber)
-                        reduceHearts()
-                }
                 displayNumber()
+                if (!isClicked) {
+                    if (orignialNumber+ "" != textView?.text) {
+                        reduceHearts()
+                    }
+                }
                 isClicked = false
             }
 
@@ -183,6 +150,7 @@ class PlayActivity : AppCompatActivity() {
 
         }.start()
         isTimeRunning = true
+
     }
 
 
