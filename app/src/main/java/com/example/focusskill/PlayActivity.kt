@@ -4,34 +4,38 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.*
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.ankushgrover.hourglass.Hourglass
 
 class PlayActivity : AppCompatActivity() {
     private var timer: CountDownTimer? = null
-    private var fullTimer: CountDownTimer? = null
-    private var resumeTimer: CountDownTimer? = null
-    private var curretNumber: String? = null
-    private var orignialNumber: String? = null
+    private var currentNumber: String? = null
+    private var originalNumber: String? = null
     private var textView: TextView? = null
-    private var pauseFrameLayout : FrameLayout?= null
+    private var pauseFrameLayout: FrameLayout? = null
     private var array = intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     private var heartNumbers = 3
     private var handler: Handler? = null
+    private var resumeHandler: Handler? = null
     private var runnable: Runnable? = null
+    private var resumeRunnable: Runnable? = null
     private var isTimeRunning: Boolean? = true;
     private var firstHartIv: ImageView? = null;
     private var secondHartIv: ImageView? = null;
     private var thirdHartIv: ImageView? = null;
     private var isClicked: Boolean = false;
-
+    private var currentCountTime : Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_play)
-        handler = Handler()
+        handler = Handler(mainLooper)
+        resumeHandler = Handler(mainLooper)
 
-        orignialNumber = intent.getStringExtra("keyIdentifier")
+        originalNumber = intent.getStringExtra("keyIdentifier")
         textView = findViewById(R.id.currentNumber)
         firstHartIv = findViewById(R.id.firstHartIv)
         secondHartIv = findViewById(R.id.secondHartIv)
@@ -42,31 +46,79 @@ class PlayActivity : AppCompatActivity() {
         clickListener()
         displayNumber()
         checkHeartsNumber()
-
         startRunnable()
-
     }
+
+    private fun clickListener() {
+        textView?.setOnClickListener {
+            if (originalNumber == textView?.text) {
+                reduceHearts()
+            }
+            isClicked = true
+        }
+
+        pauseFrameLayout?.setOnClickListener {
+            isTimeRunning = if (isTimeRunning == true) {
+                pauseTimer()
+                false
+            } else {
+                startResumeRunnable()
+                true
+            }
+        }
+    }
+
+    private fun startResumeRunnable() {
+        resumeRunnable = Runnable {
+            startResumeTimer()
+        }
+        startResumeHandler()
+    }
+
+    private fun startResumeHandler() {
+        resumeHandler!!.postDelayed(resumeRunnable!!, 3000)
+    }
+
+    private fun startResumeTimer() {
+        timer = object : CountDownTimer(currentCountTime, 3000) {
+            override fun onTick(millisUntilFinished: Long) {
+                displayNumber()
+                isClickedOrNot()
+                currentCountTime = millisUntilFinished
+                isClicked = false
+            }
+
+            override fun onFinish() {
+                isTimeRunning = false
+                goToResult("Great you win this time Want to try again?")
+            }
+
+        }.start()
+        isTimeRunning = true
+    }
+
 
     private fun startRunnable() {
         runnable = Runnable {
             startTimer()
         }
 
+        startHandler()
+    }
+
+    private fun startHandler() {
         handler!!.postDelayed(runnable!!, 3000)
     }
 
     @SuppressLint("NewApi")
     private fun calculateDisplayHeight() {
         var height : Int = display!!.height
-
         pauseFrameLayout?.minimumHeight = (height/5)
     }
 
     private fun checkHeartsNumber() {
         if (heartNumbers == 3) {
-            firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            secondHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            thirdHartIv?.setImageResource(R.drawable.ic_hart_filled)
+            setThreeHearts()
         }
     }
 
@@ -76,53 +128,48 @@ class PlayActivity : AppCompatActivity() {
             heartNumbers--
         }
         if (heartNumbers == 1) {
-            firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            secondHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
-            thirdHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+            setOneHeart()
         }
 
         if (heartNumbers == 2) {
-            firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            secondHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            thirdHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+            setTwoHearts()
         }
 
         if (heartNumbers == 3) {
-            firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            secondHartIv?.setImageResource(R.drawable.ic_hart_filled)
-            thirdHartIv?.setImageResource(R.drawable.ic_hart_filled)
+            setThreeHearts()
         }
 
         if(heartNumbers == 0) {
-            firstHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
-            secondHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
-            thirdHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
-
-
-            runnable = null
-            handler = null
-            timer?.cancel()
+            setZeroHeart()
             goToResult("loose")
+            isTimeRunning = false
         }
 
 
     }
 
-    private fun clickListener() {
-        textView?.setOnClickListener {
-            if (orignialNumber == textView?.text) {
-                reduceHearts()
-            }
-            isClicked = true
-        }
+    private fun setZeroHeart() {
+        firstHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+        secondHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+        thirdHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+    }
 
-        pauseFrameLayout?.setOnClickListener {
-            if (isTimeRunning == true) {
-                pauseTimer()
-            } else {
-               startRunnable()
-            }
-        }
+    private fun setThreeHearts() {
+        firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
+        secondHartIv?.setImageResource(R.drawable.ic_hart_filled)
+        thirdHartIv?.setImageResource(R.drawable.ic_hart_filled)
+    }
+
+    private fun setTwoHearts() {
+        firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
+        secondHartIv?.setImageResource(R.drawable.ic_hart_filled)
+        thirdHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+    }
+
+    private fun setOneHeart() {
+        firstHartIv?.setImageResource(R.drawable.ic_hart_filled)
+        secondHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
+        thirdHartIv?.setImageResource(R.drawable.ic_hart_un_fill)
     }
 
     private fun pauseTimer() {
@@ -130,27 +177,31 @@ class PlayActivity : AppCompatActivity() {
         isTimeRunning = false;
     }
 
-
     private fun startTimer() {
-        //1000*30*60   300
         timer = object : CountDownTimer(1000 * 30 * 60, 3000) {
             override fun onTick(millisUntilFinished: Long) {
                 displayNumber()
-                if (!isClicked) {
-                    if (orignialNumber+ "" != textView?.text) {
-                        reduceHearts()
-                    }
-                }
+                isClickedOrNot()
+                currentCountTime = millisUntilFinished
                 isClicked = false
             }
 
             override fun onFinish() {
+                isTimeRunning = false
                 goToResult("Great you win this time Want to try again?")
             }
 
         }.start()
         isTimeRunning = true
 
+    }
+
+    private fun isClickedOrNot() {
+        if (!isClicked) {
+            if (originalNumber + "" != textView?.text) {
+                reduceHearts()
+            }
+        }
     }
 
 
@@ -160,18 +211,19 @@ class PlayActivity : AppCompatActivity() {
     }
 
     private fun displayNumber() {
-        curretNumber = array.random().toString()
-        textView?.text = curretNumber
+        currentNumber = array.random().toString()
+        textView?.text = currentNumber
     }
 
 
-
     fun goToResult(message: String) {
+        timer?.cancel()
+        stopHandler()
+        stopResumeHandler()
         val newIntent = Intent(this, ResultActivity::class.java)
         newIntent.putExtra("Message", message)
         newIntent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
         startActivity(newIntent)
-        finish()
     }
     private fun vibrate(){
         val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -181,4 +233,13 @@ class PlayActivity : AppCompatActivity() {
             vibrator.vibrate(200)
         }
     }
+
+    private fun stopHandler() {
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+    private fun stopResumeHandler() {
+        resumeHandler?.removeCallbacksAndMessages(null)
+    }
+
 }
